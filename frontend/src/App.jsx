@@ -1,11 +1,10 @@
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 
-import Login from "./pages/Login";
-import Register from "./pages/Register";
-import Dashboard from "./pages/Dashboard";
-import Loan from "./pages/Loan";
+import Login from "./pages/login";
+import Register from "./pages/register";
+import Dashboard from "./pages/dashboard";
+import Loan from "./pages/loan";
 import AIAssistant from "./pages/AIAssistant";
-
 // Protect routes after login
 function ProtectedRoute({ children }) {
   const userId = localStorage.getItem("user_id");
