@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import Navbar from "../components/navbar";
 import Sidebar from "../components/sidebar";
-import DashboardCard from "../components/DashboardCard";
+import DashboardCard from "../components/dashboardcard";
 import api from "../api";
 
 function Dashboard() {
