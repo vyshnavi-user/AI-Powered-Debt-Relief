@@ -1,5 +1,6 @@
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
+from datetime import datetime, timedelta
 
 from database import get_db
 from models import User, Loan, AIHistory
@@ -85,13 +86,36 @@ def add_loan(loan: LoanCreate, db: Session = Depends(get_db)):
             detail="User not found"
         )
 
+    monthly_surplus = user.income - user.expenses
+
+    recommended_emi = round(monthly_surplus * 0.70, 2)
+
+    if recommended_emi <= 0:
+        recommended_emi = loan.emi
+
+    duration_months = (
+        (loan.end_date.year - loan.start_date.year) * 12 +
+        (loan.end_date.month - loan.start_date.month)
+    )
+
+    if duration_months <= 0:
+        duration_months = 1
+
+    expected_closure_date = datetime.today() + timedelta(days=duration_months * 30)
+
     new_loan = Loan(
         user_id=loan.user_id,
         lender=loan.lender,
         loan_type=loan.loan_type,
         outstanding=loan.outstanding,
         emi=loan.emi,
-        overdue=loan.overdue
+        overdue=loan.overdue,
+        start_date=loan.start_date,
+        end_date=loan.end_date,
+        duration_months=duration_months,
+        interest_rate=loan.interest_rate,
+        recommended_emi=recommended_emi,
+        expected_closure_date=expected_closure_date.date()
     )
 
     db.add(new_loan)
@@ -100,11 +124,12 @@ def add_loan(loan: LoanCreate, db: Session = Depends(get_db)):
 
     return {
         "message": "Loan Added Successfully",
-        "loan_id": new_loan.id
+        "loan_id": new_loan.id,
+        "recommended_emi": recommended_emi,
+        "duration_months": duration_months,
+        "expected_closure_date": expected_closure_date.date()
     }
-
-
-# ==========================================
+    # ==========================================
 # VIEW ALL LOANS
 # ==========================================
 
@@ -131,7 +156,19 @@ def view_loans(db: Session = Depends(get_db)):
 
             "emi": loan.emi,
 
-            "overdue_months": loan.overdue
+            "overdue_months": loan.overdue,
+
+            "start_date": loan.start_date,
+
+            "end_date": loan.end_date,
+
+            "duration_months": loan.duration_months,
+
+            "interest_rate": loan.interest_rate,
+
+            "recommended_emi": loan.recommended_emi,
+
+            "expected_closure_date": loan.expected_closure_date
 
         })
 
@@ -143,8 +180,10 @@ def view_loans(db: Session = Depends(get_db)):
 # ==========================================
 
 @router.get("/loan/{loan_id}")
-def single_loan(loan_id: int,
-                db: Session = Depends(get_db)):
+def single_loan(
+    loan_id: int,
+    db: Session = Depends(get_db)
+):
 
     loan = db.query(Loan).filter(
         Loan.id == loan_id
@@ -170,10 +209,24 @@ def single_loan(loan_id: int,
 
         "emi": loan.emi,
 
-        "overdue_months": loan.overdue
+        "overdue_months": loan.overdue,
+
+        "start_date": loan.start_date,
+
+        "end_date": loan.end_date,
+
+        "duration_months": loan.duration_months,
+
+        "interest_rate": loan.interest_rate,
+
+        "recommended_emi": loan.recommended_emi,
+
+        "expected_closure_date": loan.expected_closure_date
 
     }
-    # ==========================================
+
+
+# ==========================================
 # UPDATE LOAN
 # ==========================================
 
@@ -194,6 +247,27 @@ def update_loan(
             detail="Loan not found"
         )
 
+    user = db.query(User).filter(
+        User.id == loan.user_id
+    ).first()
+
+    monthly_surplus = user.income - user.expenses
+
+    recommended_emi = round(monthly_surplus * 0.70, 2)
+
+    if recommended_emi <= 0:
+        recommended_emi = loan.emi
+
+    duration_months = (
+        (loan.end_date.year - loan.start_date.year) * 12 +
+        (loan.end_date.month - loan.start_date.month)
+    )
+
+    if duration_months <= 0:
+        duration_months = 1
+
+    expected_closure = datetime.today() + timedelta(days=duration_months * 30)
+
     db_loan.user_id = loan.user_id
     db_loan.lender = loan.lender
     db_loan.loan_type = loan.loan_type
@@ -201,10 +275,23 @@ def update_loan(
     db_loan.emi = loan.emi
     db_loan.overdue = loan.overdue
 
+    db_loan.start_date = loan.start_date
+    db_loan.end_date = loan.end_date
+
+    db_loan.duration_months = duration_months
+
+    db_loan.interest_rate = loan.interest_rate
+
+    db_loan.recommended_emi = recommended_emi
+
+    db_loan.expected_closure_date = expected_closure.date()
+
     db.commit()
 
     return {
+
         "message": "Loan Updated Successfully"
+
     }
 
 
@@ -229,14 +316,15 @@ def delete_loan(
         )
 
     db.delete(loan)
+
     db.commit()
 
     return {
+
         "message": "Loan Deleted Successfully"
+
     }
-
-
-# ==========================================
+    # ==========================================
 # FINANCIAL ANALYSIS
 # ==========================================
 
@@ -278,6 +366,23 @@ def financial_analysis(
             2
         )
 
+    recommended_emi = round(monthly_surplus * 0.70, 2)
+
+    if recommended_emi <= 0:
+        recommended_emi = total_emi
+
+    estimated_months = 0
+
+    if recommended_emi > 0:
+        estimated_months = round(
+            total_outstanding / recommended_emi
+        )
+
+    estimated_closure = (
+        datetime.today() +
+        timedelta(days=estimated_months * 30)
+    )
+
     if debt_ratio >= 60:
         settlement = 40
         stress = "High"
@@ -302,6 +407,12 @@ def financial_analysis(
 
         "total_emi": total_emi,
 
+        "recommended_emi": recommended_emi,
+
+        "estimated_months": estimated_months,
+
+        "estimated_closure_date": estimated_closure.date(),
+
         "debt_ratio": debt_ratio,
 
         "stress_level": stress,
@@ -312,7 +423,7 @@ def financial_analysis(
 
 
 # ==========================================
-# DASHBOARD SUMMARY
+# DASHBOARD
 # ==========================================
 
 @router.get("/dashboard/{user_id}")
@@ -324,6 +435,12 @@ def dashboard(
     user = db.query(User).filter(
         User.id == user_id
     ).first()
+
+    if not user:
+        raise HTTPException(
+            status_code=404,
+            detail="User not found"
+        )
 
     loans = db.query(Loan).filter(
         Loan.user_id == user_id
@@ -407,6 +524,7 @@ def generate_letter(
     )
 
     db.add(history)
+
     db.commit()
 
     return {
@@ -446,3 +564,4 @@ def history(
         })
 
     return result
+    

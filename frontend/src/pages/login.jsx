@@ -3,116 +3,237 @@ import { Link, useNavigate } from "react-router-dom";
 import api from "../api";
 
 function Login() {
-  const navigate = useNavigate();
 
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
+    const navigate = useNavigate();
 
-  const login = async () => {
-    try {
-      const response = await api.post("/login", {
-        email,
-        password,
-      });
+    const [email, setEmail] = useState("");
 
-      localStorage.setItem("user_id", response.data.user_id);
+    const [password, setPassword] = useState("");
 
-      alert("Login Successful");
+    const [loading, setLoading] = useState(false);
 
-      navigate("/dashboard");
+    const login = async () => {
 
-    } catch (error) {
-      alert(error.response?.data?.detail || "Login Failed");
-    }
-  };
+        if (!email.trim() || !password.trim()) {
 
-  return (
-    <div
-      className="container-fluid"
-      style={{ minHeight: "100vh", background: "#EEF4FF" }}
-    >
-      <div className="row vh-100">
+            alert("Please enter Email and Password");
 
-        {/* Left Section */}
+            return;
+
+        }
+
+        try {
+
+            setLoading(true);
+
+            console.log("Sending Login Request...");
+
+            const response = await api.post("/login", {
+
+                email: email.trim(),
+
+                password: password.trim()
+
+            });
+
+            console.log("Login Response:", response.data);
+
+            localStorage.setItem("user_id", response.data.user_id);
+
+            localStorage.setItem("user_name", response.data.name);
+
+            alert("Login Successful");
+
+            navigate("/dashboard");
+
+        }
+
+        catch (error) {
+
+            console.log(error);
+
+            console.log(error.response);
+
+            alert(
+
+                error.response?.data?.detail ||
+
+                "Unable to Login"
+
+            );
+
+        }
+
+        finally {
+
+            setLoading(false);
+
+        }
+
+    };
+
+    return (
 
         <div
-          className="col-md-6 d-flex flex-column justify-content-center align-items-center text-white"
-          style={{
-            background: "linear-gradient(135deg,#1E3A8A,#2563EB)"
-          }}
-        >
-          <h1 className="display-5 fw-bold text-center">
-            AI Powered Debt Relief
-          </h1>
-
-          <h4 className="text-center">
-            & Financial Recovery Platform
-          </h4>
-
-          <p className="mt-4 text-center px-5">
-            Manage your loans, analyze financial health,
-            generate AI-powered settlement strategies and
-            create professional negotiation letters.
-          </p>
-
-        </div>
-
-        {/* Right Section */}
-
-        <div
-          className="col-md-6 d-flex justify-content-center align-items-center"
-        >
-
-          <div
-            className="card shadow-lg p-4"
+            className="container-fluid"
             style={{
-              width: "420px",
-              borderRadius: "15px"
+                minHeight: "100vh",
+                background: "#EEF4FF"
             }}
-          >
+        >
 
-            <h2 className="text-center text-primary mb-4">
-              Login
-            </h2>
+            <div className="row vh-100">
 
-            <input
-              className="form-control mb-3"
-              placeholder="Email"
-              onChange={(e) => setEmail(e.target.value)}
-            />
+                {/* Left Side */}
 
-            <input
-              className="form-control mb-3"
-              type="password"
-              placeholder="Password"
-              onChange={(e) => setPassword(e.target.value)}
-            />
+                <div
+                    className="col-md-6 d-flex flex-column justify-content-center align-items-center text-white"
+                    style={{
+                        background:
+                            "linear-gradient(135deg,#1E3A8A,#2563EB)"
+                    }}
+                >
 
-            <button
-              className="btn btn-primary w-100"
-              onClick={login}
-            >
-              Login
-            </button>
+                    <h1 className="display-4 fw-bold">
 
-            <p className="text-center mt-3">
-              Don't have an account?
-            </p>
+                        AI Powered Debt Relief
 
-            <Link
-              to="/register"
-              className="btn btn-outline-primary"
-            >
-              Register
-            </Link>
+                    </h1>
 
-          </div>
+                    <h4>
+
+                        Financial Recovery Platform
+
+                    </h4>
+
+                    <p className="text-center mt-4 px-5">
+
+                        Manage Loans
+
+                        <br />
+
+                        Analyze Financial Health
+
+                        <br />
+
+                        AI Debt Negotiation
+
+                        <br />
+
+                        Smart EMI Recommendation
+
+                    </p>
+
+                </div>
+
+                {/* Right Side */}
+
+                <div
+                    className="col-md-6 d-flex justify-content-center align-items-center"
+                >
+
+                    <div
+                        className="card shadow-lg p-4"
+                        style={{
+                            width: "420px",
+                            borderRadius: "15px"
+                        }}
+                    >
+
+                        <h2 className="text-center text-primary mb-4">
+
+                            Login
+
+                        </h2>
+
+                        <input
+
+                            type="email"
+
+                            className="form-control mb-3"
+
+                            placeholder="Enter Email"
+
+                            value={email}
+
+                            onChange={(e) =>
+
+                                setEmail(e.target.value)
+
+                            }
+
+                        />
+
+                        <input
+
+                            type="password"
+
+                            className="form-control mb-3"
+
+                            placeholder="Enter Password"
+
+                            value={password}
+
+                            onChange={(e) =>
+
+                                setPassword(e.target.value)
+
+                            }
+
+                        />
+
+                        <button
+
+                            className="btn btn-primary w-100"
+
+                            onClick={login}
+
+                            disabled={loading}
+
+                        >
+
+                            {
+
+                                loading
+
+                                    ? "Logging in..."
+
+                                    : "Login"
+
+                            }
+
+                        </button>
+
+                        <hr />
+
+                        <p className="text-center">
+
+                            Don't have an account?
+
+                        </p>
+
+                        <Link
+
+                            className="btn btn-outline-primary"
+
+                            to="/register"
+
+                        >
+
+                            Register
+
+                        </Link>
+
+                    </div>
+
+                </div>
+
+            </div>
 
         </div>
 
-      </div>
-    </div>
-  );
+    );
+
 }
 
 export default Login;

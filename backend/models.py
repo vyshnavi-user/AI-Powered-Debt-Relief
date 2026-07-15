@@ -1,41 +1,44 @@
-from sqlalchemy import Column, Integer, String, Float, ForeignKey
+from sqlalchemy import Column, Integer, String, Float, ForeignKey, Date
 from sqlalchemy.orm import relationship
-
 from database import Base
 
 
-# -----------------------------
-# User Table
-# -----------------------------
+# ==========================================
+# USER TABLE
+# ==========================================
+
 class User(Base):
     __tablename__ = "users"
 
     id = Column(Integer, primary_key=True, index=True)
 
-    name = Column(String(100), nullable=False)
+    name = Column(String)
 
-    email = Column(String(100), unique=True, nullable=False)
+    email = Column(String, unique=True)
 
-    password = Column(String(200), nullable=False)
+    password = Column(String)
 
-    income = Column(Float, default=0)
+    income = Column(Float)
 
-    expenses = Column(Float, default=0)
+    expenses = Column(Float)
 
     loans = relationship("Loan", back_populates="user")
 
 
-# -----------------------------
-# Loan Table
-# -----------------------------
+# ==========================================
+# LOAN TABLE
+# ==========================================
+
 class Loan(Base):
     __tablename__ = "loans"
 
     id = Column(Integer, primary_key=True, index=True)
 
-    lender = Column(String(100))
+    user_id = Column(Integer, ForeignKey("users.id"))
 
-    loan_type = Column(String(100))
+    lender = Column(String)
+
+    loan_type = Column(String)
 
     outstanding = Column(Float)
 
@@ -43,20 +46,33 @@ class Loan(Base):
 
     overdue = Column(Integer)
 
-    user_id = Column(Integer, ForeignKey("users.id"))
+    # NEW FIELDS
+
+    start_date = Column(Date)
+
+    end_date = Column(Date)
+
+    duration_months = Column(Integer)
+
+    interest_rate = Column(Float)
+
+    recommended_emi = Column(Float)
+
+    expected_closure_date = Column(Date)
 
     user = relationship("User", back_populates="loans")
 
 
-# -----------------------------
-# AI History
-# -----------------------------
+# ==========================================
+# AI HISTORY
+# ==========================================
+
 class AIHistory(Base):
-    __tablename__ = "history"
+    __tablename__ = "ai_history"
 
     id = Column(Integer, primary_key=True, index=True)
 
-    loan_id = Column(Integer)
+    loan_id = Column(Integer, ForeignKey("loans.id"))
 
     strategy = Column(String)
 

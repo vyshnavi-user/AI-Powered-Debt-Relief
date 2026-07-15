@@ -12,14 +12,69 @@ function Loan() {
         loan_type: "",
         outstanding: "",
         emi: "",
-        overdue: ""
+        overdue: "",
+        interest_rate: "",
+        start_date: "",
+        end_date: ""
     });
 
     const [loans, setLoans] = useState([]);
 
+    const [recommendedEmi, setRecommendedEmi] = useState(0);
+
+    const [duration, setDuration] = useState(0);
+
+    const [closureDate, setClosureDate] = useState("");
+
     useEffect(() => {
+
         loadLoans();
+
     }, []);
+
+    useEffect(() => {
+
+        calculateLoan();
+
+    }, [
+        form.outstanding,
+        form.start_date,
+        form.end_date
+    ]);
+
+    const calculateLoan = async () => {
+
+        const income = Number(localStorage.getItem("income")) || 50000;
+
+        const expenses = Number(localStorage.getItem("expenses")) || 20000;
+
+        const surplus = income - expenses;
+
+        const emi = Math.round(surplus * 0.7);
+
+        setRecommendedEmi(emi);
+
+        if (form.start_date && form.end_date) {
+
+            const start = new Date(form.start_date);
+
+            const end = new Date(form.end_date);
+
+            const months =
+                (end.getFullYear() - start.getFullYear()) * 12 +
+                (end.getMonth() - start.getMonth());
+
+            setDuration(months);
+
+            const close = new Date();
+
+            close.setMonth(close.getMonth() + months);
+
+            setClosureDate(close.toLocaleDateString());
+
+        }
+
+    };
 
     const loadLoans = async () => {
 
@@ -31,9 +86,9 @@ function Loan() {
 
         }
 
-        catch (error) {
+        catch (err) {
 
-            console.log(error);
+            console.log(err);
 
         }
 
@@ -55,7 +110,19 @@ function Loan() {
 
                 emi: Number(form.emi),
 
-                overdue: Number(form.overdue)
+                overdue: Number(form.overdue),
+
+                interest_rate: Number(form.interest_rate),
+
+                start_date: form.start_date,
+
+                end_date: form.end_date,
+
+                duration_months: duration,
+
+                recommended_emi: recommendedEmi,
+
+                expected_closure_date: form.end_date
 
             });
 
@@ -66,26 +133,29 @@ function Loan() {
                 loan_type: "",
                 outstanding: "",
                 emi: "",
-                overdue: ""
+                overdue: "",
+                interest_rate: "",
+                start_date: "",
+                end_date: ""
             });
 
             loadLoans();
 
         }
 
-        catch (error) {
+        catch (err) {
 
-            alert(error.response?.data?.detail || "Unable to add loan");
+            alert(err.response?.data?.detail || "Unable to Add Loan");
 
         }
 
     };
 
-    const deleteLoan = async (loanId) => {
+    const deleteLoan = async(id)=>{
 
-        if (!window.confirm("Delete this loan?")) return;
+        if(!window.confirm("Delete Loan?")) return;
 
-        await api.delete(`/loan/${loanId}`);
+        await api.delete(`/loan/${id}`);
 
         loadLoans();
 
@@ -93,186 +163,292 @@ function Loan() {
 
     return (
 
-        <>
-            <Navbar />
+<>
+<Navbar />
 
-            <div className="d-flex">
+<div className="d-flex">
 
-                <Sidebar />
+<Sidebar />
 
-                <div
-                    className="container"
-                    style={{
-                        marginLeft: "270px",
-                        marginTop: "30px"
-                    }}
-                >
+<div
+className="container-fluid"
+style={{
+marginLeft:"260px",
+padding:"30px"
+}}
+>
 
-                    <h2 className="mb-4">
+<h2 className="mb-4">
+Loan Management
+</h2>
 
-                        Loan Management
+<div className="card shadow p-4">
 
-                    </h2>
+<div className="row">
 
-                    <div className="card p-4 shadow">
+<div className="col-md-6">
+<label>Lender</label>
 
-                        <div className="row">
+<input
+className="form-control mb-3"
+value={form.lender}
+onChange={(e)=>setForm({...form,lender:e.target.value})}
+/>
+</div>
 
-                            <div className="col-md-6">
+<div className="col-md-6">
+<label>Loan Type</label>
 
-                                <input
-                                    className="form-control mb-3"
-                                    placeholder="Lender"
-                                    value={form.lender}
-                                    onChange={(e) =>
-                                        setForm({ ...form, lender: e.target.value })
-                                    }
-                                />
+<select
+className="form-control mb-3"
+value={form.loan_type}
+onChange={(e)=>setForm({...form,loan_type:e.target.value})}
+>
 
-                            </div>
+<option value="">Select</option>
+<option>Home Loan</option>
+<option>Personal Loan</option>
+<option>Education Loan</option>
+<option>Vehicle Loan</option>
+<option>Credit Card</option>
 
-                            <div className="col-md-6">
+</select>
 
-                                <input
-                                    className="form-control mb-3"
-                                    placeholder="Loan Type"
-                                    value={form.loan_type}
-                                    onChange={(e) =>
-                                        setForm({ ...form, loan_type: e.target.value })
-                                    }
-                                />
+</div>
 
-                            </div>
+<div className="col-md-4">
 
-                            <div className="col-md-4">
+<label>Outstanding Amount</label>
 
-                                <input
-                                    className="form-control mb-3"
-                                    type="number"
-                                    placeholder="Outstanding Amount"
-                                    value={form.outstanding}
-                                    onChange={(e) =>
-                                        setForm({ ...form, outstanding: e.target.value })
-                                    }
-                                />
+<input
+type="number"
+className="form-control mb-3"
+value={form.outstanding}
+onChange={(e)=>setForm({...form,outstanding:e.target.value})}
+/>
 
-                            </div>
+</div>
 
-                            <div className="col-md-4">
+<div className="col-md-4">
 
-                                <input
-                                    className="form-control mb-3"
-                                    type="number"
-                                    placeholder="Monthly EMI"
-                                    value={form.emi}
-                                    onChange={(e) =>
-                                        setForm({ ...form, emi: e.target.value })
-                                    }
-                                />
+<label>Monthly EMI</label>
 
-                            </div>
+<input
+type="number"
+className="form-control mb-3"
+value={form.emi}
+onChange={(e)=>setForm({...form,emi:e.target.value})}
+/>
 
-                            <div className="col-md-4">
+</div>
 
-                                <input
-                                    className="form-control mb-3"
-                                    type="number"
-                                    placeholder="Overdue Months"
-                                    value={form.overdue}
-                                    onChange={(e) =>
-                                        setForm({ ...form, overdue: e.target.value })
-                                    }
-                                />
+<div className="col-md-4">
 
-                            </div>
+<label>Interest Rate (%)</label>
 
-                        </div>
+<input
+type="number"
+className="form-control mb-3"
+value={form.interest_rate}
+onChange={(e)=>setForm({...form,interest_rate:e.target.value})}
+/>
 
-                        <button
-                            className="btn btn-primary"
-                            onClick={addLoan}
-                        >
+</div>
 
-                            Add Loan
+<div className="col-md-4">
 
-                        </button>
+<label>Overdue Months</label>
 
-                    </div>
+<input
+type="number"
+className="form-control mb-3"
+value={form.overdue}
+onChange={(e)=>setForm({...form,overdue:e.target.value})}
+/>
 
-                    <h3 className="mt-5">
+</div>
 
-                        My Loans
+<div className="col-md-4">
 
-                    </h3>
+<label>Loan Start Date</label>
 
-                    <table className="table table-bordered table-striped mt-3">
+<input
+type="date"
+className="form-control mb-3"
+value={form.start_date}
+onChange={(e)=>setForm({...form,start_date:e.target.value})}
+/>
 
-                        <thead className="table-dark">
+</div>
 
-                            <tr>
+<div className="col-md-4">
 
-                                <th>Lender</th>
+<label>Loan End Date</label>
 
-                                <th>Loan Type</th>
+<input
+type="date"
+className="form-control mb-3"
+value={form.end_date}
+onChange={(e)=>setForm({...form,end_date:e.target.value})}
+/>
 
-                                <th>Outstanding</th>
+</div>
 
-                                <th>EMI</th>
+</div>
 
-                                <th>Overdue</th>
+<hr/>
 
-                                <th>Action</th>
+<div className="row">
 
-                            </tr>
+<div className="col-md-4">
 
-                        </thead>
+<div className="alert alert-success">
 
-                        <tbody>
+<h5>Recommended EMI</h5>
 
-                            {
+<h3>
 
-                                loans.map((loan) => (
+₹{recommendedEmi}
 
-                                    <tr key={loan.loan_id}>
+</h3>
 
-                                        <td>{loan.lender}</td>
+</div>
 
-                                        <td>{loan.loan_type}</td>
+</div>
 
-                                        <td>₹{loan.outstanding}</td>
+<div className="col-md-4">
 
-                                        <td>₹{loan.emi}</td>
+<div className="alert alert-primary">
 
-                                        <td>{loan.overdue_months}</td>
+<h5>Loan Duration</h5>
 
-                                        <td>
+<h3>
 
-                                            <button
-                                                className="btn btn-danger btn-sm"
-                                                onClick={() => deleteLoan(loan.loan_id)}
-                                            >
-                                                Delete
-                                            </button>
+{duration} Months
 
-                                        </td>
+</h3>
 
-                                    </tr>
+</div>
 
-                                ))
+</div>
 
-                            }
+<div className="col-md-4">
 
-                        </tbody>
+<div className="alert alert-warning">
 
-                    </table>
+<h5>Expected Closure</h5>
 
-                </div>
+<h4>
 
-            </div>
+{closureDate}
 
-        </>
+</h4>
 
-    );
+</div>
+
+</div>
+
+</div>
+
+<button
+className="btn btn-primary w-100 mt-3"
+onClick={addLoan}
+>
+
+Save Loan
+
+</button>
+
+</div>
+
+<h3 className="mt-5">
+
+My Loans
+
+</h3>
+
+<table className="table table-bordered table-hover mt-3">
+
+<thead className="table-dark">
+
+<tr>
+
+<th>Lender</th>
+
+<th>Type</th>
+
+<th>Outstanding</th>
+
+<th>EMI</th>
+
+<th>Interest</th>
+
+<th>Duration</th>
+
+<th>Recommended EMI</th>
+
+<th>Closure</th>
+
+<th>Action</th>
+
+</tr>
+
+</thead>
+
+<tbody>
+
+{
+
+loans.map((loan)=>(
+
+<tr key={loan.loan_id}>
+
+<td>{loan.lender}</td>
+
+<td>{loan.loan_type}</td>
+
+<td>₹{loan.outstanding}</td>
+
+<td>₹{loan.emi}</td>
+
+<td>{loan.interest_rate}%</td>
+
+<td>{loan.duration_months} Months</td>
+
+<td>₹{loan.recommended_emi}</td>
+
+<td>{loan.expected_closure_date}</td>
+
+<td>
+
+<button
+className="btn btn-danger btn-sm"
+onClick={()=>deleteLoan(loan.loan_id)}
+>
+
+Delete
+
+</button>
+
+</td>
+
+</tr>
+
+))
+
+}
+
+</tbody>
+
+</table>
+
+</div>
+
+</div>
+
+</>
+
+);
 
 }
 

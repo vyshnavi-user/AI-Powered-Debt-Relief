@@ -1,5 +1,5 @@
 import React from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import {
   FaHome,
   FaMoneyBill,
@@ -8,7 +8,19 @@ import {
 } from "react-icons/fa";
 
 function Sidebar() {
+
+  const navigate = useNavigate();
+
+  const logout = () => {
+
+    localStorage.removeItem("user_id");
+
+    navigate("/");
+
+  };
+
   return (
+
     <div
       style={{
         width: "250px",
@@ -19,35 +31,73 @@ function Sidebar() {
         paddingTop: "20px"
       }}
     >
-      <h3 className="text-center mb-4">AI Debt Relief</h3>
+
+      <h3 className="text-center mb-4">
+
+        AI Debt Relief
+
+      </h3>
 
       <ul className="nav flex-column">
 
-        <Link className="nav-link text-white" to="/ai">
-    <FaRobot /> AI Assistant
-        </Link>
-
         <li className="nav-item">
-          <Link className="nav-link text-white" to="/loan">
-            <FaMoneyBill /> Loan Management
+
+          <Link
+            className="nav-link text-white"
+            to="/dashboard"
+          >
+
+            <FaHome /> Dashboard
+
           </Link>
+
         </li>
 
         <li className="nav-item">
-          <Link className="nav-link text-white" to="/ai">
-            <FaRobot /> AI Assistant
+
+          <Link
+            className="nav-link text-white"
+            to="/loan"
+          >
+
+            <FaMoneyBill /> Loan Management
+
           </Link>
+
+        </li>
+
+        <li className="nav-item">
+
+          <Link
+            className="nav-link text-white"
+            to="/ai"
+          >
+
+            <FaRobot /> AI Assistant
+
+          </Link>
+
         </li>
 
         <li className="nav-item mt-5">
-          <Link className="nav-link text-white" to="/">
+
+          <button
+            className="btn btn-danger ms-3"
+            onClick={logout}
+          >
+
             <FaSignOutAlt /> Logout
-          </Link>
+
+          </button>
+
         </li>
 
       </ul>
+
     </div>
+
   );
+
 }
 
 export default Sidebar;

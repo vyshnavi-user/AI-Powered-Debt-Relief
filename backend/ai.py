@@ -1,16 +1,23 @@
 import os
 from dotenv import load_dotenv
-import google.generativeai as genai
+from google import genai
 
-# Load environment variables
+# ==========================================
+# LOAD ENVIRONMENT VARIABLES
+# ==========================================
+
 load_dotenv()
 
-# Configure Gemini
-genai.configure(api_key=os.getenv("GEMINI_API_KEY"))
+api_key = os.getenv("GEMINI_API_KEY")
 
-# Gemini Model
-model = genai.GenerativeModel("gemini-1.5-flash")
+if not api_key:
+    raise Exception("GEMINI_API_KEY not found in .env file")
 
+client = genai.Client(api_key=api_key)
+
+# ==========================================
+# AI NEGOTIATION
+# ==========================================
 
 def generate_negotiation(
     lender,
@@ -20,12 +27,13 @@ def generate_negotiation(
     expenses,
     overdue
 ):
+
     prompt = f"""
-You are an expert financial advisor.
+You are an experienced financial advisor and debt settlement expert.
 
-Generate a professional debt settlement negotiation strategy.
+Analyze the following borrower's financial situation and generate a professional response.
 
-Borrower Details:
+Borrower Information
 
 Lender: {lender}
 
@@ -39,15 +47,32 @@ Monthly Expenses: ₹{expenses}
 
 Overdue Months: {overdue}
 
-Requirements:
+Generate the response in the following format:
 
-1. Analyze financial condition.
-2. Suggest an estimated settlement percentage.
-3. Explain why settlement is appropriate.
-4. Write a professional negotiation letter addressed to the lender.
-5. Keep the language formal and polite.
+1. Financial Health Analysis
+
+2. Debt Risk Level
+
+3. Recommended Settlement Percentage
+
+4. Recommended Monthly EMI
+
+5. Tips to Improve Financial Health
+
+6. Professional Debt Negotiation Letter addressed to the lender.
+
+The response should be clear, professional, and suitable for a bank.
 """
 
-    response = model.generate_content(prompt)
+    try:
 
-    return response.text
+        response = client.models.generate_content(
+            model="gemini-2.5-flash",
+            contents=prompt
+        )
+
+        return response.text
+
+    except Exception as e:
+
+        return f"AI Generation Failed.\n\nError: {str(e)}"

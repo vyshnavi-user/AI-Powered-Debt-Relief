@@ -17,27 +17,7 @@ function Dashboard() {
 
     }, []);
 
-    const loadDashboard = async () => {
-
-        try {
-
-            const dashboardResponse = await api.get(`/dashboard/${userId}`);
-
-            const analysisResponse = await api.get(`/analysis/${userId}`);
-
-            setDashboard(dashboardResponse.data);
-
-            setAnalysis(analysisResponse.data);
-
-        }
-
-        catch (error) {
-
-            console.log(error);
-
-        }
-
-    };
+    
 
     return (
 
@@ -64,60 +44,58 @@ function Dashboard() {
 
                     <div className="row">
 
-                        <DashboardCard
-                            title="Monthly Income"
-                            value={`₹${dashboard.income || 0}`}
-                            color="#16a34a"
-                        />
+    <DashboardCard
+        title="Monthly Income"
+        value={`₹${dashboard.income || 0}`}
+        color="#16a34a"
+    />
 
-                        <DashboardCard
-                            title="Monthly Expenses"
-                            value={`₹${dashboard.expenses || 0}`}
-                            color="#dc2626"
-                        />
+    <DashboardCard
+        title="Monthly Expenses"
+        value={`₹${dashboard.expenses || 0}`}
+        color="#dc2626"
+    />
 
-                        <DashboardCard
-                            title="Outstanding Loan"
-                            value={`₹${dashboard.total_outstanding || 0}`}
-                            color="#2563eb"
-                        />
+    <DashboardCard
+        title="Monthly Surplus"
+        value={`₹${analysis.monthly_surplus || 0}`}
+        color="#0891b2"
+    />
 
-                        <DashboardCard
-                            title="Total EMI"
-                            value={`₹${dashboard.total_emi || 0}`}
-                            color="#9333ea"
-                        />
+    <DashboardCard
+        title="Outstanding Loan"
+        value={`₹${dashboard.total_outstanding || 0}`}
+        color="#2563eb"
+    />
 
-                    </div>
+</div>
+                 <div className="row">
 
-                    <div className="row mt-3">
+    <DashboardCard
+        title="Monthly Income"
+        value={`₹${dashboard.income || 0}`}
+        color="#16a34a"
+    />
 
-                        <DashboardCard
-                            title="Monthly Surplus"
-                            value={`₹${analysis.monthly_surplus || 0}`}
-                            color="#0891b2"
-                        />
+    <DashboardCard
+        title="Monthly Expenses"
+        value={`₹${dashboard.expenses || 0}`}
+        color="#dc2626"
+    />
 
-                        <DashboardCard
-                            title="Debt Ratio"
-                            value={`${analysis.debt_ratio || 0}%`}
-                            color="#ea580c"
-                        />
+    <DashboardCard
+        title="Monthly Surplus"
+        value={`₹${analysis.monthly_surplus || 0}`}
+        color="#0891b2"
+    />
 
-                        <DashboardCard
-                            title="Stress Level"
-                            value={analysis.stress_level || "-"}
-                            color="#e11d48"
-                        />
+    <DashboardCard
+        title="Outstanding Loan"
+        value={`₹${dashboard.total_outstanding || 0}`}
+        color="#2563eb"
+    />
 
-                        <DashboardCard
-                            title="Settlement"
-                            value={`${analysis.recommended_settlement_percent || 0}%`}
-                            color="#14b8a6"
-                        />
-
-                    </div>
-
+</div>   
                 </div>
 
             </div>
