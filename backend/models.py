@@ -1,3 +1,4 @@
+
 from sqlalchemy import Column, Integer, String, Float, ForeignKey, Date
 from sqlalchemy.orm import relationship
 from database import Base
@@ -40,13 +41,17 @@ class Loan(Base):
 
     loan_type = Column(String)
 
+    # Original amount borrowed from lender
+    original_amount = Column(Float, nullable=False, default=0)
+
+    # Remaining amount to be repaid
     outstanding = Column(Float)
 
     emi = Column(Float)
 
     overdue = Column(Integer)
 
-    # NEW FIELDS
+    # LOAN DETAILS
 
     start_date = Column(Date)
 

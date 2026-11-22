@@ -1,3 +1,4 @@
+
 # Python
 backend/venv/
 backend/__pycache__/
@@ -5,9 +6,11 @@ backend/__pycache__/
 
 # Database
 backend/debt.db
+*.db
 
 # Environment Variables
 backend/.env
+.env
 
 # Node.js
 frontend/node_modules/
